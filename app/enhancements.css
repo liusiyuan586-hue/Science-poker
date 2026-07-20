@@ -21,9 +21,10 @@
 .research-section p{color:#aab6c3;font-family:Georgia,"Songti SC",serif;font-size:16px;line-height:2.05;margin:0 0 16px;text-align:justify}
 .research-section .formula{max-width:780px;margin:18px 0 28px;padding:22px 0;font-size:clamp(22px,2.7vw,38px)}
 .research-guidance{padding-bottom:46px}
-.research-figure{margin:10px 0 48px;padding:28px;background:#02070c;border:1px solid var(--line);text-align:center}
+.research-figure{margin:10px 0 48px;padding:32px;background:#f4f6f8;border:1px solid rgba(255,255,255,.24);border-radius:10px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.18)}
 .research-figure img{display:block;max-width:100%;width:auto;max-height:720px;height:auto;margin:auto;object-fit:contain}
-.research-figure figcaption{color:var(--muted);font-size:11px;line-height:1.7;margin-top:17px}
+.research-figure figcaption{color:#536170;font-size:11px;line-height:1.7;margin-top:17px}
+.media-frame:has(img){background:#f4f6f8;border-color:rgba(255,255,255,.24)}
 .research-sources{display:flex;justify-content:space-between;gap:30px;padding:28px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .research-sources div{display:flex;gap:24px;flex-wrap:wrap}
 .research-sources a{color:var(--accent);font-size:11px;text-decoration:none}
