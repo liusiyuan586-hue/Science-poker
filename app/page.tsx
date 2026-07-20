@@ -191,13 +191,13 @@ function ResearchKnowledge({entry, formula}:{entry:ResearchEntry; formula:string
       <span>01 / 概念与核心内容</span>
       <h4>{entry.title}讲了什么？</h4>
       <Formula value={formula}/>
-      {entry.overview.map((paragraph,index)=><p key={index}>{paragraph}</p>)}
+      {entry.overview.map((paragraph,index)=><ResearchBlock key={index} value={paragraph}/>)}
     </article>
 
     {entry.context.length>0&&<article className="research-section">
       <span>02 / 原理、发展与知识脉络</span>
       <h4>从定义走向完整理解</h4>
-      {entry.context.map((paragraph,index)=><p key={index}>{paragraph}</p>)}
+      {entry.context.map((paragraph,index)=><ResearchBlock key={index} value={paragraph}/>)}
     </article>}
 
     <article className="research-section research-guidance">
@@ -219,6 +219,12 @@ function ResearchKnowledge({entry, formula}:{entry:ResearchEntry; formula:string
       </div>
     </footer>}
   </section>;
+}
+
+function ResearchBlock({value}:{value:string}) {
+  const marker="@@LATEX@@";
+  if(value.startsWith(marker)) return <Formula value={value.slice(marker.length)}/>;
+  return <p>{value}</p>;
 }
 
 function questionFor(card: Card, deck: Card[]) {

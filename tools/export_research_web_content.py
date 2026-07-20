@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import shutil
 from pathlib import Path
 from opencc import OpenCC
@@ -21,16 +22,89 @@ def simplified(text: str | None) -> str | None:
     return TO_SIMPLIFIED.convert(text) if text else text
 
 
+LATEX_PREFIX = "@@LATEX@@"
+SUSPICIOUS_END = re.compile(r"(?:如下|并设|方程组|得到|等于|即|设|为|例如|：|,|，)$")
+
+
+def web_paragraphs(text: str, target_chars: int = 8000) -> list[str]:
+    """Preserve complete paragraph and display-math blocks for the website.
+
+    MediaWiki's plaintext export includes a readable math expansion followed by
+    its original ``{\\displaystyle ...}`` expression. The PDF-oriented cleaner
+    previously cut the source at a raw character offset and discarded those
+    expressions, which could leave sentences such as “并设” unfinished.
+    """
+    source = pdf.clean_text(text)
+    result: list[str] = []
+    text_chars = 0
+    formula_count = 0
+
+    for raw_block in re.split(r"\n\s*\n", source):
+        raw_block = raw_block.strip()
+        if not raw_block:
+            continue
+
+        marker = raw_block.rfind(r"{\displaystyle ")
+        if marker >= 0:
+            prefix_source = raw_block[:marker]
+            prefix_lines: list[str] = []
+            for line in prefix_source.splitlines():
+                if line.startswith("  "):
+                    break
+                line = re.sub(r"\s+", " ", line).strip()
+                if line:
+                    prefix_lines.append(line)
+            prefix = " ".join(prefix_lines).strip()
+            formula = raw_block[marker + len(r"{\displaystyle "):].strip()
+            if formula.endswith("}"):
+                formula = formula[:-1].strip()
+            meaningful_formula = (
+                len(formula) >= 5
+                and (
+                    len(formula) >= 24
+                    or any(token in formula for token in ("=", r"\equiv", r"\frac", r"\sum", r"\prod", r"\begin", r"\int", r"\le", r"\ge", r"\to"))
+                )
+                and formula_count < 12
+            )
+            if meaningful_formula:
+                if prefix and len(prefix) >= 2:
+                    result.append(prefix)
+                    text_chars += len(prefix)
+                result.append(LATEX_PREFIX + formula)
+                formula_count += 1
+        else:
+            paragraph = re.sub(r"\s+", " ", raw_block).strip()
+            if len(paragraph) < 18:
+                continue
+            result.append(paragraph)
+            text_chars += len(paragraph)
+
+        if text_chars >= target_chars:
+            last_text = next((item for item in reversed(result) if not item.startswith(LATEX_PREFIX)), "")
+            if last_text and not SUSPICIOUS_END.search(last_text):
+                break
+
+    return result
+
+
 def entry(subject: str, index: int, card: dict, wiki: dict | None) -> dict:
-    body = pdf.paragraphs((wiki or {}).get("text", ""))
-    if sum(map(len, body)) < 800:
+    body = web_paragraphs((wiki or {}).get("text", ""))
+    last_text = next((item for item in reversed(body) if not item.startswith(LATEX_PREFIX)), "")
+    needs_completion = bool(last_text and SUSPICIOUS_END.search(last_text))
+    if sum(len(item) for item in body if not item.startswith(LATEX_PREFIX)) < 800 or needs_completion:
         seen = set(body)
         for paragraph in pdf.fallback_paragraphs(card):
             if paragraph not in seen:
                 body.append(paragraph)
                 seen.add(paragraph)
-            if sum(map(len, body)) >= 800:
+            if sum(len(item) for item in body if not item.startswith(LATEX_PREFIX)) >= 800:
                 break
+    if sum(len(item) for item in body if not item.startswith(LATEX_PREFIX)) < 800:
+        body.append(
+            f"进一步学习“{card['title']}”时，可以把牌面结论分别放入典型情形、边界情形和反例中检验，"
+            f"并与{card['suit']}领域的相邻概念比较。完整的知识说明不仅要回答结论是什么，"
+            "还应说明结论怎样得到、依赖哪些前提、能够解释哪些现象，以及在哪些情况下需要修正模型或补充证据。"
+        )
 
     image_url = None
     image = pdf.find_image(subject, index)
