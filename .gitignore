@@ -45,6 +45,8 @@ next-env.d.ts
 /tmp/
 /output/
 /build/
+!/build/
+!/build/sites-vite-plugin.ts
 /.qa_cs/
 /tools/tectonic/
 /tools/__pycache__/
