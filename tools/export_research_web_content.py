@@ -106,6 +106,13 @@ def entry(subject: str, index: int, card: dict, wiki: dict | None) -> dict:
             "还应说明结论怎样得到、依赖哪些前提、能够解释哪些现象，以及在哪些情况下需要修正模型或补充证据。"
         )
 
+    # This was a generic study prompt shared by many fallback entries. It does
+    # not add card-specific knowledge and is intentionally omitted from the web.
+    body = [
+        paragraph for paragraph in body
+        if not paragraph.startswith("继续查阅资料时，可围绕五类问题展开")
+    ]
+
     image_url = None
     image = pdf.find_image(subject, index)
     if image:
@@ -124,10 +131,6 @@ def entry(subject: str, index: int, card: dict, wiki: dict | None) -> dict:
         # Keep every remaining paragraph from the PDF's prepared source rather
         # than presenting only a short preview on the website.
         "context": [simplified(paragraph) for paragraph in body[3:]],
-        "guidance": (
-            "学习时应先辨认研究对象与关键变量，再核对适用范围、条件、量纲或证据类型，"
-            "最后把结论放回具体问题中理解。牌面信息是知识的压缩索引，不应替代完整论证。"
-        ),
         "image": image_url,
         "imageCaption": simplified(f"{(wiki or {}).get('page_title', card['title'])}。图片保持原始比例显示。") if image_url else None,
         "sourceUrl": (wiki or {}).get("url"),

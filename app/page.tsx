@@ -10,7 +10,7 @@ type Card = { id: number; rank: string; suit: string; topic: Topic };
 type Topic = { title: string; formula: string; lead: string; meaning: string; application: string };
 type ResearchEntry = {
   title: string; suit: string; credit: string; impact: string;
-  overview: string[]; context: string[]; guidance: string;
+  overview: string[]; context: string[];
   image: string | null; imageCaption: string | null;
   sourceUrl: string | null; videoUrl: string | null;
 };
@@ -199,12 +199,6 @@ function ResearchKnowledge({entry, formula}:{entry:ResearchEntry; formula:string
       <h4>从定义走向完整理解</h4>
       {entry.context.map((paragraph,index)=><ResearchBlock key={index} value={paragraph}/>)}
     </article>}
-
-    <article className="research-section research-guidance">
-      <span>03 / 理解与使用提示</span>
-      <h4>怎样正确使用这项知识？</h4>
-      <p>{entry.guidance}</p>
-    </article>
 
     {entry.image&&<figure className="research-figure">
       <img src={entry.image} alt={entry.imageCaption??entry.title}/>
