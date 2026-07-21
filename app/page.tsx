@@ -17,6 +17,12 @@ type ResearchEntry = {
 
 const ranks = ["3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"];
 
+const assetUrl = (path: string) => {
+  if (!path.startsWith("/")) return path;
+  const base = ((import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/").replace(/\/$/, "");
+  return `${base}${path}`;
+};
+
 const subjects: Record<Subject, { name: string; en: string; symbol: string; color: string; suits: string[]; topics: Topic[] }> = {
   math: {
     name: "数学", en: "MATHEMATICS", symbol: "∑", color: "#e05a8b",
@@ -152,13 +158,13 @@ export default function Home() {
           const suitIndex=meta.suits.indexOf(card.suit);
           const color=suitIndex<0?"#c4a867":["#e85d75","#df9e3e","#42aee8","#8c75d8"][suitIndex];
           return <button className="card-button classified-card" style={{"--card-color":color} as React.CSSProperties} key={card.id} onClick={e=>openCard(card,e.currentTarget)} aria-label={`查看${card.topic.title}，分类：${card.suit}`}>
-            <img src={`/cards/${subject}/${String(card.id).padStart(2,"0")}.webp`} alt={`${card.rank} ${card.topic.title}`} loading="lazy"/><span><b>{card.rank}</b>{card.topic.title}</span>
+            <img src={assetUrl(`/cards/${subject}/${String(card.id).padStart(2,"0")}.webp`)} alt={`${card.rank} ${card.topic.title}`} loading="lazy"/><span><b>{card.rank}</b>{card.topic.title}</span>
           </button>})}</div>
       </section>}
 
       {view === "detail" && selected && <section className="detail-page">
         <nav><button onClick={back}>← 返回牌组</button><span className="brand">{meta.name} · {selected.suit}</span><span>{String(selected.id).padStart(2,"0")} / 54</span></nav>
-        <div className="detail-hero"><div className="detail-card"><img src={`/cards/${subject}/${String(selected.id).padStart(2,"0")}.webp`} alt={selected.topic.title}/></div>
+        <div className="detail-hero"><div className="detail-card"><img src={assetUrl(`/cards/${subject}/${String(selected.id).padStart(2,"0")}.webp`)} alt={selected.topic.title}/></div>
           <div className="detail-intro"><span className="eyebrow">{selected.rank} · {selected.suit}</span><h2>{selected.topic.title}</h2><Formula value={selected.topic.formula}/><p>{selected.topic.lead}</p></div>
         </div>
         <TopicMedia title={selected.topic.title}/>
@@ -174,7 +180,7 @@ export default function Home() {
         <div className="detail-nav"><button disabled={selected.id===1} onClick={()=>setSelected(deck[selected.id-2])}>← 上一张</button><button disabled={selected.id===54} onClick={()=>setSelected(deck[selected.id])}>下一张 →</button></div>
       </section>}
 
-      {flying && <div className="flight-layer" style={{"--x":`${flying.rect.left}px`,"--y":`${flying.rect.top}px`,"--w":`${flying.rect.width}px`,"--h":`${flying.rect.height}px`} as React.CSSProperties}><img src={`/cards/${subject}/${String(flying.card.id).padStart(2,"0")}.webp`} alt=""/></div>}
+      {flying && <div className="flight-layer" style={{"--x":`${flying.rect.left}px`,"--y":`${flying.rect.top}px`,"--w":`${flying.rect.width}px`,"--h":`${flying.rect.height}px`} as React.CSSProperties}><img src={assetUrl(`/cards/${subject}/${String(flying.card.id).padStart(2,"0")}.webp`)} alt=""/></div>}
     </main>
   );
 }
@@ -201,7 +207,7 @@ function ResearchKnowledge({entry, formula}:{entry:ResearchEntry; formula:string
     </article>}
 
     {entry.image&&<figure className="research-figure">
-      <img src={entry.image} alt={entry.imageCaption??entry.title}/>
+      <img src={assetUrl(entry.image)} alt={entry.imageCaption??entry.title}/>
       {entry.imageCaption&&<figcaption>{entry.imageCaption}</figcaption>}
     </figure>}
 
@@ -256,7 +262,7 @@ const mediaCatalog:MediaItem[]=[
 function TopicMedia({title}:{title:string}) {
   const media=mediaCatalog.find(item=>item.match.some(word=>title.includes(word)));
   if(!media) return null;
-  return <section className="topic-media"><header><span className="eyebrow">CURATED VISUAL MATERIAL</span><h3>{media.title}</h3></header><div className="media-frame">{media.kind==="video"?<video src={media.src} controls preload="metadata" playsInline/>:<img src={media.src} alt={media.title}/>}</div><div className="media-caption"><p>{media.caption}</p><a href={media.source} target="_blank" rel="noreferrer">来源：{media.sourceLabel} ↗</a></div></section>;
+  return <section className="topic-media"><header><span className="eyebrow">CURATED VISUAL MATERIAL</span><h3>{media.title}</h3></header><div className="media-frame">{media.kind==="video"?<video src={assetUrl(media.src)} controls preload="metadata" playsInline/>:<img src={assetUrl(media.src)} alt={media.title}/>}</div><div className="media-caption"><p>{media.caption}</p><a href={media.source} target="_blank" rel="noreferrer">来源：{media.sourceLabel} ↗</a></div></section>;
 }
 
 function WaterCycleKnowledge() {
