@@ -223,8 +223,14 @@ function ResearchKnowledge({entry, formula}:{entry:ResearchEntry; formula:string
 
 function ResearchBlock({value}:{value:string}) {
   const marker="@@LATEX@@";
-  if(value.startsWith(marker)) return <Formula value={value.slice(marker.length)}/>;
-  return <p>{value}</p>;
+  if(!value.includes(marker)) return <p>{value}</p>;
+  const parts=value.split(/(@@LATEX@@.*?@@END@@)/g).filter(Boolean);
+  return <p className="research-rich-text">{parts.map((part,index)=>{
+    if(!part.startsWith(marker)) return <span key={index}>{part}</span>;
+    const latex=part.slice(marker.length,-"@@END@@".length).trim();
+    const html=katex.renderToString(latex,{throwOnError:false,displayMode:false,strict:false});
+    return <span key={index} className="research-inline-formula" aria-label={latex} dangerouslySetInnerHTML={{__html:html}}/>;
+  })}</p>;
 }
 
 function questionFor(card: Card, deck: Card[]) {

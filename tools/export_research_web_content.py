@@ -23,7 +23,8 @@ def simplified(text: str | None) -> str | None:
 
 
 LATEX_PREFIX = "@@LATEX@@"
-SUSPICIOUS_END = re.compile(r"(?:如下|并设|方程组|得到|等于|即|设|为|例如|：|,|，)$")
+SUSPICIOUS_END = re.compile(r"(?:如下|並設|并设|方程組|方程组|得到|等於|等于|即|設|设|為|为|例如|：|,|，)$")
+SENTENCE_END = re.compile(r"[。！？；.!?]$|[”’）》】]$")
 
 
 def web_paragraphs(text: str, target_chars: int = 8000) -> list[str]:
@@ -39,65 +40,87 @@ def web_paragraphs(text: str, target_chars: int = 8000) -> list[str]:
     text_chars = 0
     formula_count = 0
 
-    for raw_block in re.split(r"\n\s*\n", source):
-        raw_block = raw_block.strip()
-        if not raw_block:
+    for source_block in re.split(r"\n\s*\n", source):
+        if not source_block.strip():
             continue
 
-        marker = raw_block.rfind(r"{\displaystyle ")
-        if marker >= 0:
-            prefix_source = raw_block[:marker]
-            prefix_lines: list[str] = []
-            for line in prefix_source.splitlines():
-                if line.startswith("  "):
-                    break
-                line = re.sub(r"\s+", " ", line).strip()
-                if line:
-                    prefix_lines.append(line)
-            prefix = " ".join(prefix_lines).strip()
-            formula = raw_block[marker + len(r"{\displaystyle "):].strip()
+        raw_block = source_block.strip()
+        formula_match = re.fullmatch(r"\{\\displaystyle\s+(.+)\}", raw_block, flags=re.S)
+        if formula_match:
+            formula = formula_match.group(1).strip()
             if formula.endswith("}"):
-                formula = formula[:-1].strip()
-            meaningful_formula = (
-                len(formula) >= 5
-                and (
-                    len(formula) >= 24
-                    or any(token in formula for token in ("=", r"\equiv", r"\frac", r"\sum", r"\prod", r"\begin", r"\int", r"\le", r"\ge", r"\to"))
-                )
-                and formula_count < 12
-            )
+                # The outer brace was consumed by the regex; preserve braces
+                # that genuinely belong to the TeX expression.
+                formula = formula.strip()
+            meaningful_formula = len(formula) >= 1
             if meaningful_formula:
-                if prefix and len(prefix) >= 2:
-                    result.append(prefix)
-                    text_chars += len(prefix)
                 result.append(LATEX_PREFIX + formula)
                 formula_count += 1
+        elif source_block[:1].isspace():
+            # MediaWiki emits a second, visually expanded plaintext copy of
+            # display equations before the canonical {\displaystyle ...}
+            # block. It is not prose and must not be duplicated.
+            continue
         else:
             paragraph = re.sub(r"\s+", " ", raw_block).strip()
-            if len(paragraph) < 18:
-                continue
             result.append(paragraph)
             text_chars += len(paragraph)
 
-        if text_chars >= target_chars:
-            last_text = next((item for item in reversed(result) if not item.startswith(LATEX_PREFIX)), "")
-            if last_text and not SUSPICIOUS_END.search(last_text):
-                break
-
     return result
+
+
+def merge_research_blocks(blocks: list[str]) -> list[str]:
+    """Join plaintext fragments and formulas back into complete paragraphs.
+
+    MediaWiki exports often split one sentence into ``text / display math /
+    text`` blocks. Rendering every block independently made the website look
+    truncated and turned ordinary equations into oversized horizontal panels.
+    Inline markers preserve the exact formula while restoring the sentence.
+    """
+    merged: list[str] = []
+    buffer = ""
+    for block in blocks:
+        if block.startswith(LATEX_PREFIX):
+            formula = block[len(LATEX_PREFIX):].strip()
+            buffer += f" {LATEX_PREFIX}{formula}@@END@@ "
+            continue
+
+        text = re.sub(r"\s+", " ", block).strip()
+        if not text:
+            continue
+        buffer = f"{buffer}{text}" if buffer else text
+        if SENTENCE_END.search(text):
+            merged.append(re.sub(r"\s+", " ", buffer).strip())
+            buffer = ""
+
+    if buffer:
+        merged.append(re.sub(r"\s+", " ", buffer).strip())
+    return merged
 
 
 def entry(subject: str, index: int, card: dict, wiki: dict | None) -> dict:
     body = web_paragraphs((wiki or {}).get("text", ""))
     last_text = next((item for item in reversed(body) if not item.startswith(LATEX_PREFIX)), "")
     needs_completion = bool(last_text and SUSPICIOUS_END.search(last_text))
+    if needs_completion:
+        # Some upstream extracts end mid-sentence. Drop only that unfinished
+        # tail instead of publishing a visibly broken clause.
+        while body:
+            removed = body.pop()
+            if removed == last_text:
+                break
+        needs_completion = False
     if sum(len(item) for item in body if not item.startswith(LATEX_PREFIX)) < 800 or needs_completion:
         seen = set(body)
+        added_specific = False
         for paragraph in pdf.fallback_paragraphs(card):
+            if paragraph.startswith("继续查阅资料时，可围绕五类问题展开"):
+                continue
             if paragraph not in seen:
                 body.append(paragraph)
                 seen.add(paragraph)
-            if sum(len(item) for item in body if not item.startswith(LATEX_PREFIX)) >= 800:
+                added_specific = True
+            if added_specific and sum(len(item) for item in body if not item.startswith(LATEX_PREFIX)) >= 800:
                 break
     if sum(len(item) for item in body if not item.startswith(LATEX_PREFIX)) < 800:
         body.append(
@@ -111,6 +134,11 @@ def entry(subject: str, index: int, card: dict, wiki: dict | None) -> dict:
     body = [
         paragraph for paragraph in body
         if not paragraph.startswith("继续查阅资料时，可围绕五类问题展开")
+    ]
+    body = merge_research_blocks(body)
+    body = [
+        paragraph for paragraph in body
+        if not SUSPICIOUS_END.search(re.sub(r"@@LATEX@@.*?@@END@@", "", paragraph).strip())
     ]
 
     image_url = None
@@ -127,10 +155,10 @@ def entry(subject: str, index: int, card: dict, wiki: dict | None) -> dict:
         "suit": simplified(card["suit"]),
         "credit": simplified(card.get("credit", "")),
         "impact": simplified(card.get("impact", "")),
-        "overview": [simplified(paragraph) for paragraph in body[:3]],
+        "overview": [simplified(paragraph) for paragraph in body[:2]],
         # Keep every remaining paragraph from the PDF's prepared source rather
         # than presenting only a short preview on the website.
-        "context": [simplified(paragraph) for paragraph in body[3:]],
+        "context": [simplified(paragraph) for paragraph in body[2:]],
         "image": image_url,
         "imageCaption": simplified(f"{(wiki or {}).get('page_title', card['title'])}。图片保持原始比例显示。") if image_url else None,
         "sourceUrl": (wiki or {}).get("url"),
