@@ -44,7 +44,7 @@ next-env.d.ts
 
 # local generation and quality-assurance artifacts
 /tmp/
-/output/
+#/output/
 /build/
 !/build/
 !/build/sites-vite-plugin.ts
