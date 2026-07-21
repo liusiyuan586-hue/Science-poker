@@ -43,3 +43,15 @@
 .formula .katex-display{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
 .research-inline-formula{max-width:100%;color:var(--suit-color);overflow-x:auto}
 @media(max-width:700px){.detail-intro .formula-long{font-size:15px}.detail-intro .formula-very-long{font-size:12px}}
+
+/* Home project note and repository link. */
+.home .home-footer{display:block;padding-top:14px;color:#657587;letter-spacing:.16em}
+.footer-meta{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.github-link{display:inline-flex;align-items:center;gap:8px;color:#a9b6c4;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:7px 11px;letter-spacing:.12em;transition:.25s ease}
+.github-link svg{width:14px;height:14px}
+.github-link i{font-style:normal;color:var(--accent)}
+.github-link:hover,.github-link:focus-visible{color:#fff;border-color:color-mix(in srgb,var(--accent) 60%,white);background:color-mix(in srgb,var(--accent) 9%,transparent);transform:translateY(-2px);outline:none}
+.disclaimer{margin:10px 0 0;max-width:780px;color:#647486;font-size:9px;line-height:1.65;letter-spacing:.07em}
+.disclaimer strong{color:#9dacba;font-weight:600;margin-right:5px}
+@media(max-width:1100px) and (min-width:701px){.home{padding-bottom:150px}}
+@media(max-width:700px){.home .home-footer{display:block}.footer-meta{align-items:flex-start}.footer-meta>span{line-height:1.7;max-width:60%}.github-link{flex:0 0 auto}.disclaimer{margin-top:14px}}
