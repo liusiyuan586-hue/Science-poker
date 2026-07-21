@@ -32,3 +32,14 @@
 .research-sources a{color:var(--accent);font-size:11px;text-decoration:none}
 .research-sources a:hover{text-decoration:underline}
 @media(max-width:700px){.pdf-knowledge{padding-top:32px}.research-section{padding:30px 0}.research-section h4{font-size:23px}.research-section p{font-size:15px;line-height:1.9}.topic-media{max-width:100%;padding:28px 0}.media-frame{min-height:0;padding:10px}.media-frame img{max-height:380px}.media-frame video{max-height:56vw}.research-figure{margin-inline:0;padding:12px}.research-figure img{max-height:380px}.research-sources{display:block}.research-sources div{margin-top:18px;display:grid;gap:14px}}
+
+/* Keep deck classification, card edge and formulas on the same suit palette. */
+.detail-card img{border:3px solid var(--suit-color)}
+.detail-intro{min-width:0}
+.detail-page .formula{color:var(--suit-color)}
+.detail-intro .formula{width:100%;max-width:100%;min-width:0;color:var(--suit-color);font-size:clamp(22px,3vw,44px);overflow:hidden}
+.detail-intro .formula-long{font-size:clamp(16px,2vw,29px)}
+.detail-intro .formula-very-long{font-size:clamp(13px,1.45vw,21px)}
+.formula .katex-display{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.research-inline-formula{max-width:100%;color:var(--suit-color);overflow-x:auto}
+@media(max-width:700px){.detail-intro .formula-long{font-size:15px}.detail-intro .formula-very-long{font-size:12px}}

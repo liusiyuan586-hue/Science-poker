@@ -16,6 +16,7 @@ type ResearchEntry = {
 };
 
 const ranks = ["3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"];
+const SUIT_COLORS = ["#e85d75", "#df9e3e", "#42aee8", "#8c75d8"] as const;
 
 const assetUrl = (path: string) => {
   if (!path.startsWith("/")) return path;
@@ -26,7 +27,7 @@ const assetUrl = (path: string) => {
 const subjects: Record<Subject, { name: string; en: string; symbol: string; color: string; suits: string[]; topics: Topic[] }> = {
   math: {
     name: "数学", en: "MATHEMATICS", symbol: "∑", color: "#e05a8b",
-    suits: ["代数与数论", "几何与三角", "微积分与分析", "概率与离散"],
+    suits: ["代数与数论", "几何与三角", "微积分与分析", "概率统计与离散数学"],
     topics: [
       ["欧拉公式", "eⁱᶿ = cos θ + i sin θ", "连接指数、三角函数与复数的桥梁。", "它说明复平面中的旋转可以由指数运算表达。", "信号处理、交流电路、量子力学与傅里叶分析。"],
       ["勾股定理", "a² + b² = c²", "直角三角形三边之间最经典的关系。", "斜边平方等于两条直角边平方之和。", "测量、建筑、坐标几何与计算机图形学。"],
@@ -45,7 +46,7 @@ const subjects: Record<Subject, { name: string; en: string; symbol: string; colo
   },
   physics: {
     name: "物理", en: "PHYSICS", symbol: "λ", color: "#48a9ff",
-    suits: ["经典力学", "热学与统计", "电磁与波动", "相对论与量子"],
+    suits: ["经典力学", "热学与光学", "电磁学", "相对论与量子力学"],
     topics: [
       ["牛顿第二定律", "F = ma", "力、质量与加速度之间的基本关系。", "合外力决定物体动量变化的快慢。", "机械、航天、交通与工程设计。"],
       ["万有引力", "F = Gm₁m₂/r²", "统一地面落体与天体运行。", "两个物体间的引力与质量乘积成正比，与距离平方成反比。", "行星轨道、卫星导航与天体物理。"],
@@ -83,7 +84,7 @@ const subjects: Record<Subject, { name: string; en: string; symbol: string; colo
   },
   computer: {
     name: "计算机科学", en: "COMPUTER SCIENCE", symbol: "01", color: "#a786ff",
-    suits: ["算法与复杂度", "系统与网络", "数据与智能", "理论与语言"],
+    suits: ["理论与算法", "编程与软件", "系统与架构", "数据与智能"],
     topics: [
       ["二分查找", "T(n) = T(n/2)+O(1)", "每次排除一半候选范围。", "有序结构让比较结果直接确定下一步方向。", "数据库索引、查找库与调试。"],
       ["快速排序", "E[T(n)] = O(n log n)", "通过分区递归整理数据。", "选取基准后把较小与较大元素分到两侧。", "通用排序、数据处理与算法教学。"],
@@ -137,8 +138,10 @@ export default function Home() {
   function back() { if (view === "detail") setView("deck"); else setView("home"); }
 
   const meta = subjects[subject];
+  const selectedSuitIndex = selected ? meta.suits.indexOf(selected.suit) : -1;
+  const selectedSuitColor = selectedSuitIndex < 0 ? "#c4a867" : SUIT_COLORS[selectedSuitIndex];
   return (
-    <main className={`site theme-${subject}`}>
+    <main className={`site theme-${subject}`} style={{"--suit-color":selectedSuitColor} as React.CSSProperties}>
       <div className="ambient" aria-hidden="true"><i/><i/><i/></div>
       {view === "home" && <section className="home">
         <header className="home-head"><div className="eyebrow">SCIENCE IN YOUR HANDS</div><h1>自然科学<br/><em>文明扑克</em></h1><p>四门科学，二百一十六张知识卡牌。<br/>翻开一张牌，进入一个改变世界的思想。</p></header>
@@ -153,10 +156,10 @@ export default function Home() {
       {view === "deck" && <section className="deck-page">
         <nav><button onClick={back}>← 返回首页</button><span className="brand">SCIENCE POKER</span><span>{String(deck.length).padStart(2,"0")} / 54</span></nav>
         <header className="deck-head"><div><span className="eyebrow">{meta.en} COLLECTION</span><h2>{meta.name}<small>文明扑克</small></h2></div><p>每一种花色，都是一条认识世界的路径。<br/>选择任意卡牌，展开它背后的知识。</p></header>
-        <div className="suit-key">{meta.suits.map((x,i)=><span key={x}><i style={{background:["#e85d75","#df9e3e","#42aee8","#8c75d8"][i]}}/>{x}</span>)}</div>
+        <div className="suit-key">{meta.suits.map((x,i)=><span key={x}><i style={{background:SUIT_COLORS[i]}}/>{x}</span>)}</div>
         <div className="card-grid">{deck.map(card=>{
           const suitIndex=meta.suits.indexOf(card.suit);
-          const color=suitIndex<0?"#c4a867":["#e85d75","#df9e3e","#42aee8","#8c75d8"][suitIndex];
+          const color=suitIndex<0?"#c4a867":SUIT_COLORS[suitIndex];
           return <button className="card-button classified-card" style={{"--card-color":color} as React.CSSProperties} key={card.id} onClick={e=>openCard(card,e.currentTarget)} aria-label={`查看${card.topic.title}，分类：${card.suit}`}>
             <img src={assetUrl(`/cards/${subject}/${String(card.id).padStart(2,"0")}.webp`)} alt={`${card.rank} ${card.topic.title}`} loading="lazy"/><span><b>{card.rank}</b>{card.topic.title}</span>
           </button>})}</div>
@@ -248,7 +251,8 @@ function questionFor(card: Card, deck: Card[]) {
 function Formula({value}:{value:string}) {
   if (value.startsWith("见牌面")) return <div className="formula formula-note">公式与核心命题请参照左侧原始牌面</div>;
   const html=katex.renderToString(value,{throwOnError:false,displayMode:true,strict:false});
-  return <div className="formula" aria-label={value} dangerouslySetInnerHTML={{__html:html}}/>;
+  const sizeClass=value.length>90?" formula-very-long":value.length>48?" formula-long":"";
+  return <div className={`formula${sizeClass}`} aria-label={value} dangerouslySetInnerHTML={{__html:html}}/>;
 }
 
 function FormulaExplanation({formula,title}:{formula:string;title:string}) {
