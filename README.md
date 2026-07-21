@@ -7,7 +7,8 @@
 
 <p align="center">
   <a href="#中文">中文</a> · <a href="#english">English</a> ·
-  <a href="https://github.com/liusiyuan586-hue/Science-poker">GitHub</a>
+  <a href="https://github.com/liusiyuan586-hue/Science-poker">GitHub</a> ·
+  <a href="https://liusiyuan586-hue.github.io/Science-poker/">在线体验 / Live Demo</a>
 </p>
 
 <p align="center">
@@ -64,8 +65,11 @@ npm run dev
 
 ```bash
 npm run build
+npm run build:pages
 npm test
 ```
+
+推送到 `main` 分支后，仓库中的 GitHub Actions 工作流会自动构建并发布 GitHub Pages。
 
 > [!IMPORTANT]
 > 本项目内容仅供学习与交流。知识卡牌可能存在疏漏或错误，请结合教材、论文和权威机构资料独立核验。
@@ -117,8 +121,11 @@ Build and verify:
 
 ```bash
 npm run build
+npm run build:pages
 npm test
 ```
+
+After changes are pushed to the `main` branch, the included GitHub Actions workflow automatically builds and deploys the GitHub Pages site.
 
 > [!IMPORTANT]
 > This project is intended for learning and discussion. Knowledge cards may contain omissions or errors; please verify important information against textbooks, research papers, and authoritative sources.
