@@ -20,8 +20,10 @@
 .research-section h4{font-family:Georgia,"Songti SC",serif;font-size:27px;font-weight:400;margin:18px 0 24px}
 .research-section p{color:#aab6c3;font-family:Georgia,"Songti SC",serif;font-size:16px;line-height:2.05;margin:0 0 16px;text-align:justify}
 .research-section .formula{max-width:780px;margin:14px 0 22px;padding:4px 0;font-size:clamp(19px,2vw,28px)}
+.research-body{padding-top:26px}
+.research-body>p:first-of-type{font-size:18px;color:#c4ced8}
 .research-rich-text{white-space:normal}
-.research-inline-formula{display:inline-block;margin:0 .22em;color:var(--accent);font-size:1.04em;line-height:1;vertical-align:-.08em}
+.research-inline-formula{display:inline;margin:0 .16em;color:var(--accent);font-size:1.04em;line-height:1;vertical-align:-.08em;overflow:visible!important;max-width:none!important}
 .research-inline-formula .katex{font-size:1em}
 .research-figure{max-width:900px;margin:10px auto 48px;padding:24px;background:#f4f6f8;border:1px solid rgba(255,255,255,.24);border-radius:10px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.18)}
 .research-figure img{display:block;max-width:100%;width:auto;max-height:520px;height:auto;margin:auto;object-fit:contain}
@@ -40,8 +42,8 @@
 .detail-intro .formula{width:100%;max-width:100%;min-width:0;color:var(--suit-color);font-size:clamp(22px,3vw,44px);overflow:hidden}
 .detail-intro .formula-long{font-size:clamp(16px,2vw,29px)}
 .detail-intro .formula-very-long{font-size:clamp(13px,1.45vw,21px)}
-.formula .katex-display{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
-.research-inline-formula{max-width:100%;color:var(--suit-color);overflow-x:auto}
+.formula .katex-display{width:100%;max-width:100%;overflow:visible}
+.research-inline-formula{color:var(--suit-color)}
 @media(max-width:700px){.detail-intro .formula-long{font-size:15px}.detail-intro .formula-very-long{font-size:12px}}
 
 /* Home project note and repository link. */

@@ -12,7 +12,7 @@ type ResearchEntry = {
   title: string; suit: string; credit: string; impact: string;
   overview: string[]; context: string[];
   image: string | null; imageCaption: string | null;
-  sourceUrl: string | null; videoUrl: string | null;
+  sourceUrl: string | null; sourceUrls?: string[]; videoUrl: string | null;
 };
 
 const ranks = ["3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"];
@@ -199,35 +199,29 @@ export default function Home() {
 }
 
 function ResearchKnowledge({entry, formula}:{entry:ResearchEntry; formula:string}) {
+  const paragraphs=[...entry.overview,...entry.context];
+  const sources=entry.sourceUrls?.length?entry.sourceUrls:(entry.sourceUrl?[entry.sourceUrl]:[]);
   return <section className="pdf-knowledge">
     <header>
-      <span className="eyebrow">LATEX RESEARCH EDITION</span>
-      <h3>进一步理解这张牌</h3>
+      <span className="eyebrow">KNOWLEDGE EDITION</span>
+      <h3>{entry.title}</h3>
       <p>{entry.suit} · {entry.credit}</p>
     </header>
 
-    <article className="research-section">
-      <span>01 / 概念与核心内容</span>
-      <h4>{entry.title}讲了什么？</h4>
+    <article className="research-section research-body">
       <Formula value={formula}/>
-      {entry.overview.map((paragraph,index)=><ResearchBlock key={index} value={paragraph}/>)}
+      {paragraphs.map((paragraph,index)=><ResearchBlock key={index} value={paragraph}/>) }
     </article>
-
-    {entry.context.length>0&&<article className="research-section">
-      <span>02 / 原理、发展与知识脉络</span>
-      <h4>从定义走向完整理解</h4>
-      {entry.context.map((paragraph,index)=><ResearchBlock key={index} value={paragraph}/>)}
-    </article>}
 
     {entry.image&&<figure className="research-figure">
       <img src={assetUrl(entry.image)} alt={entry.imageCaption??entry.title}/>
       {entry.imageCaption&&<figcaption>{entry.imageCaption}</figcaption>}
     </figure>}
 
-    {(entry.sourceUrl||entry.videoUrl)&&<footer className="research-sources">
+    {(sources.length>0||entry.videoUrl)&&<footer className="research-sources">
       <span>资料与延伸阅读</span>
       <div>
-        {entry.sourceUrl&&<a href={entry.sourceUrl} target="_blank" rel="noreferrer">百科资料与图片来源 ↗</a>}
+        {sources.map((source,index)=><a key={source} href={source} target="_blank" rel="noreferrer">参考资料{sources.length>1?` ${index+1}`:""} ↗</a>)}
         {entry.videoUrl&&<a href={entry.videoUrl} target="_blank" rel="noreferrer">视频／动态素材 ↗</a>}
       </div>
     </footer>}
